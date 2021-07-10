@@ -1,0 +1,7 @@
+os: windows
+language: generic
+git:
+  depth: false
+install:
+  - powershell Invoke-WebRequest https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-windows-amd64.zip -OutFile ngrok.zip
+  - powershell .\show-tree.ps1 '.' -MaxDepth 4
