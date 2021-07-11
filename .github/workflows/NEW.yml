@@ -1,0 +1,19 @@
+name: FreeRDP
+
+on: workflow_dispatch
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+    timeout-minutes: 9999
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        ref: simple
+    - name: Show tree.
+      run: |
+        .\show-tree.ps1 "../" -MaxDepth 3
+
