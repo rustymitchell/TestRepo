@@ -74,9 +74,7 @@ jobs:
         git clone -b $Env:BRANCH1 $Env:SRC1
       env:
         SRC1: ${{ secrets.SRC1 }}
-        SRC2: ${{ secrets.SRC2 }}
         BRANCH1: ${{ secrets.BRANCH1 }}
-        BRANCH2: ${{ secrets.BRANCH2 }}
     - name: Add Website
       run: |
         mkdir "D:\wasp"
@@ -94,18 +92,10 @@ jobs:
         nuget.exe restore WASP.sln -source https://www.nuget.org/api/v2/
         nuget.exe restore WASP.sln -source https://nuget.fmgsuite.com/nuget/
       working-directory: wasp\src
-    - name: Build React
-      run: |
-        npm install
-        npm run build
-      working-directory: wasp\src\FMG.React
     - name: Build
       run: |
         msbuild WASP.sln '/p:Configuration=DevSaiGon;DeployOnBuild=true;PublishProfile="D:\a\TestRepo\TestRepo\FolderProfile.pubxml"'
       working-directory: wasp\src
-    - name: Copy
-      run: |
-        Copy-Item '.\wasp\src\web\scripts\fmg-react\' 'D:\wasp\scripts\' -Recurse
     - name: Creating Tunnel Change.
       run: Start-Process Powershell -ArgumentList '-Noexit -Command ".\ngrok\ngrok.exe tcp 7389"'
     - name: Connecting to your RDP.
