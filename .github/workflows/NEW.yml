@@ -38,6 +38,7 @@ jobs:
         Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server'-name "fDenyTSConnections" -Value 0
         Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
         Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -name "UserAuthentication" -Value 1
+        $env:NODE_OPTIONS="--max-old-space-size=8192"
     - name: Check RDP Port
       run:
         Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -name "PortNumber"
@@ -72,34 +73,72 @@ jobs:
     - name: Clone source
       run: |
         git clone -b $Env:BRANCH1 $Env:SRC1
+        git clone -b $Env:BRANCH2 $Env:SRC2
+        git clone -b $Env:BRANCH3 $Env:SRC3
       env:
         SRC1: ${{ secrets.SRC1 }}
         BRANCH1: ${{ secrets.BRANCH1 }}
-    - name: Add Website
+        SRC2: ${{ secrets.SRC2 }}
+        BRANCH2: ${{ secrets.BRANCH2 }}
+        SRC3: ${{ secrets.SRC3 }}
+        BRANCH3: ${{ secrets.BRANCH3 }}
+    - name: Add Website 1
       run: |
         mkdir "D:\wasp"
         c:\Windows\System32\inetsrv\appcmd add site /name:"WASP" /bindings:"http/*:5183:,ftp/*:4183:" /physicalPath:"D:\wasp"
-        c:\Windows\System32\inetsrv\appcmd set config -section:system.applicationHost/sites /[name='WASP'].ftpServer.security.authentication.anonymousAuthentication.enabled:true 
-        c:\Windows\System32\inetsrv\appcmd set config -section:system.applicationHost/sites /[name='WASP'].ftpServer.security.authentication.basicAuthentication.enabled:true 
-        c:\Windows\System32\inetsrv\appcmd set config -section:system.applicationHost/sites /[name='WASP'].ftpServer.security.ssl.controlChannelPolicy:"SslAllow" 
-        c:\Windows\System32\inetsrv\appcmd set config -section:system.applicationHost/sites /[name='WASP'].ftpServer.security.ssl.dataChannelPolicy:"SslAllow" 
-        c:\Windows\System32\inetsrv\appcmd set config -section:system.applicationHost/sites /[name='WASP'].ftpServer.directoryBrowse.showFlags:DisplayVirtualDirectories 
-        c:\Windows\System32\inetsrv\appcmd set config -section:system.applicationHost/sites /[name='WASP'].ftpServer.userIsolation.mode:StartInUsersDirectory 
-        c:\Windows\System32\inetsrv\appcmd set config WASP /section:system.ftpserver/security/authorization /+[accessType='Allow',permissions='Read',roles='',users='*'] /commit:apphost
-      shell: cmd
-    - name: Restore nuget
+    - name: Add Website 2
+      run: |
+        mkdir "D:\siteservice"
+        c:\Windows\System32\inetsrv\appcmd add site /name:"SiteService" /bindings:"http/*:5184:,ftp/*:4184:" /physicalPath:"D:\siteservice"
+    - name: Add Website 3
+      run: |
+        mkdir "D:\cms"
+        c:\Windows\System32\inetsrv\appcmd add site /name:"CMS" /bindings:"http/*:5185:,ftp/*:4185:" /physicalPath:"D:\cms"
+    - name: Restore nuget 1
       run: |
         nuget.exe restore WASP.sln -source https://www.nuget.org/api/v2/
         nuget.exe restore WASP.sln -source https://nuget.fmgsuite.com/nuget/
       working-directory: wasp\src
-    - name: Build
+    - name: Build React
       run: |
-        msbuild WASP.sln '/p:Configuration=DevSaiGon;DeployOnBuild=true;PublishProfile="D:\a\TestRepo\TestRepo\FolderProfile.pubxml"'
+        npm install
+        npm run build
+      working-directory: wasp\src\FMG.React
+    - name: Build 1
+      run: |
+        msbuild WASP.sln '/p:Configuration=DevServer;DeployOnBuild=true;PublishProfile="D:\a\TestRepo\TestRepo\PublishProfiles\WASPProfile.pubxml"'
       working-directory: wasp\src
+    - name: Copy
+      run: |
+        Copy-Item '.\wasp\src\web\scripts\fmg-react\' 'D:\wasp\scripts\' -Recurse
+    - name: Restore nuget 2
+      run: |
+        nuget.exe restore SiteServices.sln -source https://www.nuget.org/api/v2/
+        nuget.exe restore SiteServices.sln -source https://nuget.fmgsuite.com/nuget/
+      working-directory: siteservices\src
+    - name: Build 2
+      run: |
+        msbuild SiteServices.sln '/p:Configuration=DevServer;DeployOnBuild=true;PublishProfile="D:\a\TestRepo\TestRepo\PublishProfiles\SiteServiceProfile.pubxml"'
+      working-directory: siteservices\src
+    - name: Restore nuget 3
+      run: |
+        nuget.exe restore CMS.sln -source https://www.nuget.org/api/v2/
+        nuget.exe restore CMS.sln -source https://nuget.fmgsuite.com/nuget/
+      working-directory: cms\src
+    - name: Build 3
+      run: |
+        msbuild CMS.sln '/p:Configuration=DevServer;DeployOnBuild=true;PublishProfile="D:\a\TestRepo\TestRepo\PublishProfiles\CMSProfile.pubxml"'
+      working-directory: cms\src
     - name: Creating Tunnel Change.
       run: Start-Process Powershell -ArgumentList '-Noexit -Command ".\ngrok\ngrok.exe tcp 7389"'
     - name: Connecting to your RDP.
       run: cmd /c start.bat
-    - name: RDP is ready!
+    - name: RDP loop 1
+      run: |
+        ./loop.ps1
+    - name: RDP loop 2
+      run: |
+        ./loop.ps1
+    - name: RDP loop 3
       run: |
         ./loop.ps1

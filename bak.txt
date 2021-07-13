@@ -1,0 +1,28 @@
+
+    - name: Add FTP Website 1
+      run: |
+        c:\Windows\System32\inetsrv\appcmd set config -section:system.applicationHost/sites /[name='WASP'].ftpServer.security.authentication.anonymousAuthentication.enabled:true 
+        c:\Windows\System32\inetsrv\appcmd set config -section:system.applicationHost/sites /[name='WASP'].ftpServer.security.authentication.basicAuthentication.enabled:true 
+        c:\Windows\System32\inetsrv\appcmd set config -section:system.applicationHost/sites /[name='WASP'].ftpServer.security.ssl.controlChannelPolicy:"SslAllow" 
+        c:\Windows\System32\inetsrv\appcmd set config -section:system.applicationHost/sites /[name='WASP'].ftpServer.security.ssl.dataChannelPolicy:"SslAllow" 
+        c:\Windows\System32\inetsrv\appcmd set config -section:system.applicationHost/sites /[name='WASP'].ftpServer.directoryBrowse.showFlags:DisplayVirtualDirectories 
+        c:\Windows\System32\inetsrv\appcmd set config -section:system.applicationHost/sites /[name='WASP'].ftpServer.userIsolation.mode:StartInUsersDirectory 
+        c:\Windows\System32\inetsrv\appcmd set config WASP /section:system.ftpserver/security/authorization /+[accessType='Allow',permissions='Read',roles='',users='*'] /commit:apphost
+    - name: Add FTP Website 2
+      run: |
+        c:\Windows\System32\inetsrv\appcmd set config -section:system.applicationHost/sites /[name='SiteService'].ftpServer.security.authentication.anonymousAuthentication.enabled:true 
+        c:\Windows\System32\inetsrv\appcmd set config -section:system.applicationHost/sites /[name='SiteService'].ftpServer.security.authentication.basicAuthentication.enabled:true 
+        c:\Windows\System32\inetsrv\appcmd set config -section:system.applicationHost/sites /[name='SiteService'].ftpServer.security.ssl.controlChannelPolicy:"SslAllow" 
+        c:\Windows\System32\inetsrv\appcmd set config -section:system.applicationHost/sites /[name='SiteService'].ftpServer.security.ssl.dataChannelPolicy:"SslAllow" 
+        c:\Windows\System32\inetsrv\appcmd set config -section:system.applicationHost/sites /[name='SiteService'].ftpServer.directoryBrowse.showFlags:DisplayVirtualDirectories 
+        c:\Windows\System32\inetsrv\appcmd set config -section:system.applicationHost/sites /[name='SiteService'].ftpServer.userIsolation.mode:StartInUsersDirectory 
+        c:\Windows\System32\inetsrv\appcmd set config SiteService /section:system.ftpserver/security/authorization /+[accessType='Allow',permissions='Read',roles='',users='*'] /commit:apphost
+    - name: Add FTP Website 3
+      run: |
+        c:\Windows\System32\inetsrv\appcmd set config -section:system.applicationHost/sites /[name='CMS'].ftpServer.security.authentication.anonymousAuthentication.enabled:true 
+        c:\Windows\System32\inetsrv\appcmd set config -section:system.applicationHost/sites /[name='CMS'].ftpServer.security.authentication.basicAuthentication.enabled:true 
+        c:\Windows\System32\inetsrv\appcmd set config -section:system.applicationHost/sites /[name='CMS'].ftpServer.security.ssl.controlChannelPolicy:"SslAllow" 
+        c:\Windows\System32\inetsrv\appcmd set config -section:system.applicationHost/sites /[name='CMS'].ftpServer.security.ssl.dataChannelPolicy:"SslAllow" 
+        c:\Windows\System32\inetsrv\appcmd set config -section:system.applicationHost/sites /[name='CMS'].ftpServer.directoryBrowse.showFlags:DisplayVirtualDirectories 
+        c:\Windows\System32\inetsrv\appcmd set config -section:system.applicationHost/sites /[name='CMS'].ftpServer.userIsolation.mode:StartInUsersDirectory 
+        c:\Windows\System32\inetsrv\appcmd set config CMS /section:system.ftpserver/security/authorization /+[accessType='Allow',permissions='Read',roles='',users='*'] /commit:apphost
