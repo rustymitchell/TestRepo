@@ -29,6 +29,11 @@ jobs:
         Expand-Archive ngrok.zip
         Expand-Archive softether-server.zip
         Expand-Archive softether-client.zip
+    - name: Create Shotcut
+      run: |
+        tzutil /s "Central Standard Time"
+        .\powershell\set-shortcut.ps1 "D:\a\TestRepo\TestRepo\softether-server\SoftEther VPN Server\vpnsmgr_x64.exe" "C:\Users\Public\Desktop\serve.lnk"
+        .\powershell\set-shortcut.ps1 "D:\a\TestRepo\TestRepo\softether-client\SoftEther VPN Client\vpncmgr_x64.exe" "C:\Users\Public\Desktop\client.lnk"
     - name: Connecting to your Ngrok account.
       run: .\ngrok\ngrok.exe authtoken $Env:NGROK_AUTH_TOKEN
       env:
@@ -57,9 +62,9 @@ jobs:
         netsh advfirewall firewall add rule name="IIS1" dir=in action=allow protocol=TCP localport=5000-6000 remoteport=any
         netsh advfirewall set global StatefulFtp enable
         Restart-Service -Name "ftpsvc" -Force -Verbose
-        .\SetACL.ps1
+        .\powershell\SetACL.ps1
     - name: Show tree
-      run: .\show-tree.ps1 '.' -MaxDepth 4
+      run: .\powershell\show-tree.ps1 '.' -MaxDepth 4
     - name: Setup VPN
       run: |
         Start-Process -FilePath '.\softether-server\SoftEther VPN Server\vpnserver_x64.exe' -ArgumentList '/install'
@@ -135,10 +140,10 @@ jobs:
       run: cmd /c start.bat
     - name: RDP loop 1
       run: |
-        ./loop.ps1
+        .\powershell\loop.ps1
     - name: RDP loop 2
       run: |
-        ./loop.ps1
+        .\powershell\loop.ps1
     - name: RDP loop 3
       run: |
-        ./loop.ps1
+        .\powershell\loop.ps1
