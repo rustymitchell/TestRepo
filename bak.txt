@@ -26,3 +26,14 @@
         c:\Windows\System32\inetsrv\appcmd set config -section:system.applicationHost/sites /[name='CMS'].ftpServer.directoryBrowse.showFlags:DisplayVirtualDirectories 
         c:\Windows\System32\inetsrv\appcmd set config -section:system.applicationHost/sites /[name='CMS'].ftpServer.userIsolation.mode:StartInUsersDirectory 
         c:\Windows\System32\inetsrv\appcmd set config CMS /section:system.ftpserver/security/authorization /+[accessType='Allow',permissions='Read',roles='',users='*'] /commit:apphost
+
+    
+    - name: Build React
+      run: |
+        npm install
+        npm run build
+      working-directory: wasp\src\FMG.React
+      
+    - name: Copy
+      run: |
+        Copy-Item '.\wasp\src\web\scripts\fmg-react\' 'D:\wasp\scripts\' -Recurse

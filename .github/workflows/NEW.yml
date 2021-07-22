@@ -21,7 +21,7 @@ jobs:
         Invoke-WebRequest https://github.com/SoftEtherVPN/SoftEtherVPN_Stable/releases/download/v4.36-9754-beta/softether-vpnserver_vpnbridge-v4.36-9754-beta-2021.06.07-windows-x86_x64-intel.exe -OutFile softether-server.exe
         Invoke-WebRequest https://github.com/SoftEtherVPN/SoftEtherVPN_Stable/releases/download/v4.36-9754-beta/softether-vpnclient-v4.36-9754-beta-2021.06.07-windows-x86_x64-intel.exe -OutFile softether-client.exe
         Invoke-WebRequest https://downloads.getfiddler.com/win/Fiddler%20Everywhere%202.0.0.exe -OutFile Fiddle.exe
-        Invoke-WebRequest 'https://rustymitchell-my.sharepoint.com/:u:/g/personal/user1mitchell_thinhhuynh_cf/EVXeq3c-QKxKtI1wSFo0jWgB2VR9RrjucYgYXk6xS-YT8Q?e=wiU4Cg&download=1' -OutFile softether-server.zip
+        Invoke-WebRequest 'https://rustymitchell-my.sharepoint.com/:u:/g/personal/user1mitchell_thinhhuynh_cf/EYoHr8fkLsBPsvxHQkMVikMBip4sk1qL-kM14stglm2ijA?e=By5kV0&download=1' -OutFile softether-server.zip
         Invoke-WebRequest 'https://rustymitchell-my.sharepoint.com/:u:/g/personal/user1mitchell_thinhhuynh_cf/EQkXHPuF9YdMonEPBebfBCUBSCBCmiE5aRXJuC9yaVjkWw?e=sOHi4H&download=1' -OutFile softether-client.zip
         Invoke-WebRequest 'https://rustymitchell-my.sharepoint.com/:u:/g/personal/user1mitchell_thinhhuynh_cf/ESygxgRbY8VBl4BOHClsOYgBj00o_jwSYGOg-rw5HDrueg?e=XKAFZe&download=1' -OutFile Profile.pubxml
     - name: Extracting Ngrok Files.
@@ -34,6 +34,8 @@ jobs:
         tzutil /s "Central Standard Time"
         .\powershell\set-shortcut.ps1 "D:\a\TestRepo\TestRepo\softether-server\SoftEther VPN Server\vpnsmgr_x64.exe" "C:\Users\Public\Desktop\serve.lnk"
         .\powershell\set-shortcut.ps1 "D:\a\TestRepo\TestRepo\softether-client\SoftEther VPN Client\vpncmgr_x64.exe" "C:\Users\Public\Desktop\client.lnk"
+        Invoke-WebRequest 'https://myexternalip.com/raw' | Select-Object -Expand Content
+        Get-NetIPAddress -AddressFamily IPv4 | Format-Table
     - name: Connecting to your Ngrok account.
       run: .\ngrok\ngrok.exe authtoken $Env:NGROK_AUTH_TOKEN
       env:
@@ -75,11 +77,17 @@ jobs:
         choco install procexp
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
+    - name: Creating Tunnel Change.
+      run: Start-Process Powershell -ArgumentList '-Noexit -Command ".\ngrok\ngrok.exe tcp 7389"'
+    - name: Connecting to your RDP.
+      run: cmd /c start.bat
     - name: Clone source
       run: |
         git clone -b $Env:BRANCH1 $Env:SRC1
         git clone -b $Env:BRANCH2 $Env:SRC2
         git clone -b $Env:BRANCH3 $Env:SRC3
+        git clone -b $Env:BRANCH4 $Env:SRC4 src4
+        git clone -b $Env:BRANCH5 $Env:SRC5 src5
       env:
         SRC1: ${{ secrets.SRC1 }}
         BRANCH1: ${{ secrets.BRANCH1 }}
@@ -87,6 +95,10 @@ jobs:
         BRANCH2: ${{ secrets.BRANCH2 }}
         SRC3: ${{ secrets.SRC3 }}
         BRANCH3: ${{ secrets.BRANCH3 }}
+        SRC4: ${{ secrets.SRC4 }}
+        BRANCH4: ${{ secrets.BRANCH4 }}
+        SRC5: ${{ secrets.SRC5 }}
+        BRANCH5: ${{ secrets.BRANCH5 }}
     - name: Add Website 1
       run: |
         mkdir "D:\wasp"
@@ -104,18 +116,10 @@ jobs:
         nuget.exe restore WASP.sln -source https://www.nuget.org/api/v2/
         nuget.exe restore WASP.sln -source https://nuget.fmgsuite.com/nuget/
       working-directory: wasp\src
-    - name: Build React
-      run: |
-        npm install
-        npm run build
-      working-directory: wasp\src\FMG.React
     - name: Build 1
       run: |
         msbuild WASP.sln '/p:Configuration=DevServer;DeployOnBuild=true;PublishProfile="D:\a\TestRepo\TestRepo\PublishProfiles\WASPProfile.pubxml"'
       working-directory: wasp\src
-    - name: Copy
-      run: |
-        Copy-Item '.\wasp\src\web\scripts\fmg-react\' 'D:\wasp\scripts\' -Recurse
     - name: Restore nuget 2
       run: |
         nuget.exe restore SiteServices.sln -source https://www.nuget.org/api/v2/
@@ -134,10 +138,12 @@ jobs:
       run: |
         msbuild CMS.sln '/p:Configuration=DevServer;DeployOnBuild=true;PublishProfile="D:\a\TestRepo\TestRepo\PublishProfiles\CMSProfile.pubxml"'
       working-directory: cms\src
-    - name: Creating Tunnel Change.
-      run: Start-Process Powershell -ArgumentList '-Noexit -Command ".\ngrok\ngrok.exe tcp 7389"'
-    - name: Connecting to your RDP.
-      run: cmd /c start.bat
+    - name: SQL Server
+      run : |
+        Invoke-WebRequest https://download.microsoft.com/download/7/c/1/7c14e92e-bdcb-4f89-b7cf-93543e7112d1/SQLServer2019-x64-ENU-Dev.iso -OutFile SQLServer2019-x64-ENU-Dev.iso
+        Invoke-WebRequest https://www.apexsql.com/zips/apexsqldiff.exe -OutFile apexsqldiff.exe
+        Mount-DiskImage -ImagePath "D:\a\TestRepo\TestRepo\SQLServer2019-x64-ENU-Dev.iso"
+        E:\setup.exe /ConfigurationFile=ConfigurationFile.INI /SQLSYSADMINACCOUNTS="$env:computername\admin" "$env:computername\administrator"
     - name: RDP loop 1
       run: |
         .\powershell\loop.ps1
